@@ -155,11 +155,16 @@ function Checkout() {
           purchase.
         </p>
         <Link to="/">
-          <button>ok</button>
+          <button onClick={() => {
+            setCart([])
+          }}>>ok</button>
         </Link>
       </div>
       <Link to="/">
-        <div className="checkout__tool-tip-container__black-box"></div>
+        <div className="checkout__tool-tip-container__black-box" 
+             onClick={() => {
+              setCart([])
+             }}></div>
       </Link>
     </div>
   ) : (
