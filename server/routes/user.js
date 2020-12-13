@@ -155,6 +155,14 @@ router.put("/logout-all", auth, async (req, res) => {
     }
 
     await User.updateOne({ _id: req.userId }, { tokens: [] });
+    
+      res.clearCookie("__Host-token", {
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      secure: true,
+      httpOnly: true,
+    });
 
     res.sendStatus(200);
   } catch (err) {
