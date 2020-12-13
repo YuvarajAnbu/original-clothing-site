@@ -7,7 +7,7 @@ import Address from "./subComponents/Address";
 import Card from "./subComponents/Card";
 
 function Billing() {
-  const { cart } = useContext(CartContext);
+  const { cart, setCart } = useContext(CartContext);
   const { user } = useContext(UserContext);
 
   const [billingDetails, setBillingDetails] = useState({
@@ -77,11 +77,18 @@ function Billing() {
           purchase.
         </p>
         <Link to="/">
-          <button>ok</button>
+          <button onClick={() => {
+            setCart([])
+          }}>
+    ok
+    </button>
         </Link>
       </div>
       <Link to="/">
-        <div className="billing__tool-tip-container__black-box"></div>
+        <div className="billing__tool-tip-container__black-box" 
+             onClick={() => {
+              setCart([])
+            }}></div>
       </Link>
     </div>
   ) : (
