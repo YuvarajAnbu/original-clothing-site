@@ -73,7 +73,7 @@ function Reviews({ id, totalRatings, setItem }) {
       document.querySelector("textarea").style.height =
         document.querySelector("textarea").scrollHeight + "px";
     }
-  }, []);
+  }, [showInput]);
 
   useEffect(() => {
     window.addEventListener("resize", setHeight);
