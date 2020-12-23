@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Shop.css";
-import { useParams } from "react-router-dom";
 import axios from "axios";
 import Filter from "./subComponents/filter/Filter";
 import ShopItem from "./subComponents/ShopItem";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useHistory } from "react-router-dom";
 
-function Shop() {
-  const { catagory, type } = useParams();
+function Shop({ title, link }) {
+  const history = useHistory();
 
   // state for all items from server
   const [items, setItems] = useState([]);
@@ -38,6 +38,8 @@ function Shop() {
     size: true,
   });
 
+  const [lastClicked, setLastClicked] = useState("");
+
   const [showFilters, setShowFilters] = useState(false);
 
   const [blackBox, setBlackBox] = useState(false);
@@ -46,25 +48,11 @@ function Shop() {
 
   const [PaginateLoading, setPaginateLoading] = useState(false);
 
-  useEffect(() => {
-    document.title = `${catagory}'s ${type} | Stand Out`;
-  }, [catagory, type]);
-
-  // setting color on page loads
+  const [update, setUpdate] = useState(0);
 
   useEffect(() => {
-    axios
-      .get(`/product/total-items/${catagory}/${type}`)
-      .then((res) => {
-        if (res.status !== 200) {
-          throw new Error();
-        }
-        setItemStock(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, [catagory, type]);
+    document.title = `${title} | Stand Out`;
+  }, [title]);
 
   useEffect(() => {
     if (window.innerWidth >= 1000 && showFilters) {
@@ -85,100 +73,42 @@ function Shop() {
     };
   }, [resizeEvent]);
 
-  //set page to 0 when catagory changes
-  useEffect(() => {
-    setPage(0);
-  }, [catagory, type]);
-
-  // getting items from server on page loads and when filter changes
-  useEffect(() => {
-    if (window.innerWidth > 1000) {
-      setItems([]);
-      axios
-        .get(
-          `/product/${catagory}/${type}/?page=${1}&limit=${limit}&sort=${
-            filter.sort
-          }&color=${filter.color}&size=${filter.size}`
-        )
-        .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
-          }
-
-          const { count, products } = res.data;
-          setItemsCount(count);
-
-          setItems([]);
-
-          setStockIndex((prev) => {
-            let obj = {};
-            for (let i = 0; i < products.length; i++) {
-              obj[i] = 0;
-            }
-            return obj;
-          });
-
-          setItems(products);
-          setPage(1);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+  const reset = useCallback(() => {
+    if (itemStock.colors.length > 0) {
+      setPage(0);
+      setHideFilter({
+        sort: true,
+        color: true,
+        size: true,
+      });
+      setFilter({
+        sort: "",
+        color: [],
+        size: [],
+      });
+      setLastClicked("");
+      setUpdate((prev) => prev + 1);
     }
-  }, [filter, catagory, type, showFilters]);
+  }, [itemStock]);
 
-  useEffect(() => {
-    if (window.innerWidth <= 1000 && page === 0) {
-      setItems([]);
-      axios
-        .get(
-          `/product/${catagory}/${type}/?page=${1}&limit=${limit}&sort=${
-            filter.sort
-          }&color=${filter.color}&size=${filter.size}`
-        )
-        .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
-          }
+  useEffect(reset, [link]);
 
-          const { count, products } = res.data;
-          setItemsCount(count);
-
-          setItems([]);
-
-          setStockIndex((prev) => {
-            let obj = {};
-            for (let i = 0; i < products.length; i++) {
-              obj[i] = 0;
-            }
-            return obj;
-          });
-
-          setItems(products);
-          setPage(1);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  }, [page, filter, catagory, type]);
-
-  const getItems = () => {
+  //getting items from server
+  const getItems = useCallback(() => {
     setItems([]);
     axios
       .get(
-        `/product/${catagory}/${type}/?page=${1}&limit=${limit}&sort=${
-          filter.sort
-        }&color=${filter.color}&size=${filter.size}`
+        `/product/${link}?page=${1}&limit=${limit}&sort=${filter.sort}&color=${
+          filter.color
+        }&size=${filter.size}`
       )
       .then((res) => {
         if (res.status !== 200) {
           throw new Error();
         }
-
         const { count, products } = res.data;
-        setItemsCount(count);
 
+        setItemsCount(count);
         setStockIndex((prev) => {
           let obj = {};
           for (let i = 0; i < products.length; i++) {
@@ -193,21 +123,52 @@ function Shop() {
       .catch((err) => {
         console.log(err);
       });
-  };
+  }, [filter, link]);
+
+  const getFilters = useCallback(() => {
+    axios
+      .get(
+        `/product/filter/${link}?&color=${filter.color}&size=${filter.size}&filter=${lastClicked}`
+      )
+      .then((res) => {
+        setFilter((prev) => {
+          Object.keys(res.data).forEach((el) => {
+            if (el === "sizes") {
+              prev.size = prev.size.filter((k) => res.data[el].includes(k));
+            } else if (el === "colors") {
+              prev.color = prev.color.filter((k) =>
+                res.data[el].includes("#" + k)
+              );
+            }
+          });
+
+          return prev;
+        });
+        setItemStock((prev) => {
+          return {
+            ...prev,
+            ...res.data,
+          };
+        });
+        getItems();
+      })
+      .catch((err) => {
+        history.push("/404");
+        console.log(err);
+      });
+  }, [filter, lastClicked, history, link, getItems]);
+
+  useEffect(getFilters, [update]);
 
   const pagination = () => {
     setPaginateLoading(true);
     axios
       .get(
-        `/product/${catagory}/${type}/?page=${page + 1}&limit=${limit}&sort=${
+        `/product/${link}/?page=${page + 1}&limit=${limit}&sort=${
           filter.sort
         }&color=${filter.color}&size=${filter.size}`
       )
       .then((res) => {
-        if (res.status !== 200) {
-          throw new Error();
-        }
-
         const { count, products } = res.data;
         setItemsCount(count);
 
@@ -218,7 +179,6 @@ function Shop() {
           }
           return obj;
         });
-
         setItems((prev) => prev.concat(products));
         setPage((prev) => prev + 1);
         setPaginateLoading(false);
@@ -248,12 +208,13 @@ function Shop() {
           showFilters,
           setShowFilters,
           setBlackBox,
-          getItems,
+          setLastClicked,
+          setUpdate,
         }}
       />
       <div className="shop__items-container">
         <div className="shop__items-container__title">
-          <h1>{`${catagory}'s ${type}`}</h1>
+          <h1>{title}</h1>
           <p
             onClick={() => {
               setShowFilters((prev) => !prev);

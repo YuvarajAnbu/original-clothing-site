@@ -1,6 +1,14 @@
 import React from "react";
 
-function Color({ filter, setFilter, hideFilter, setHideFilter, itemStock }) {
+function Color({
+  filter,
+  setFilter,
+  hideFilter,
+  setHideFilter,
+  itemStock,
+  setLastClicked,
+  setUpdate,
+}) {
   return (
     <div className="shop__filters-container__filter-container">
       <div
@@ -51,6 +59,8 @@ function Color({ filter, setFilter, hideFilter, setHideFilter, itemStock }) {
                     : [...prev.color, color.slice(1)],
                 };
               });
+              setLastClicked("color");
+              setUpdate((prev) => prev + 1);
             }}
           >
             <div

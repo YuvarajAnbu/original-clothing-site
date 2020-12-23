@@ -3,6 +3,7 @@ import SwiperCore, { Navigation } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 SwiperCore.use([Navigation]);
 
@@ -126,20 +127,20 @@ function BestSeller() {
                             const arr = [];
                             for (var i = 0; i < Number(el); i++) {
                               arr.push(
-                                <img
-                                  key={index}
-                                  src="https://img.icons8.com/material-rounded/24/000000/star.png"
-                                  alt="icon"
+                                <FontAwesomeIcon
+                                  key={i}
+                                  icon="star"
+                                  className="shop__items-container__items__item__rating-container__icons__icon"
                                 />
                               );
                             }
                             return arr;
                           } else {
                             return (
-                              <img
-                                key={index}
-                                src="https://img.icons8.com/material-rounded/24/000000/star-half.png"
-                                alt="icon"
+                              <FontAwesomeIcon
+                                key={9}
+                                icon="star-half"
+                                className="shop__items-container__items__item__rating-container__icons__icon"
                               />
                             );
                           }

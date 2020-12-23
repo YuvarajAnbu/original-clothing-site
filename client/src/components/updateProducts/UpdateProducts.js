@@ -53,6 +53,8 @@ function UpdateProducts() {
 
   const [showFilters, setShowFilters] = useState(false);
 
+  const [lastClicked, setLastClicked] = useState("");
+
   const [blackBox, setBlackBox] = useState(false);
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -62,6 +64,8 @@ function UpdateProducts() {
   const [showMsgs, setShowMsgs] = useState(false);
 
   const [PaginateLoading, setPaginateLoading] = useState(false);
+
+  const [update, setUpdate] = useState(0);
 
   useEffect(() => {
     document.title = "Update Products | Stand Out";
@@ -147,9 +151,6 @@ function UpdateProducts() {
   }, [successMsgs]);
 
   //set page to 0 when catagory changes
-  useEffect(() => {
-    setPage(0);
-  }, [search]);
 
   // changing search query
   useEffect(() => {
@@ -167,13 +168,13 @@ function UpdateProducts() {
             )
           );
         } else {
-          setNoResults(true);
+          setSearch(";kjh4g#&o4lh");
         }
       } else {
-        setNoResults(true);
+        setSearch(";kjh4g#&o4lh");
       }
     } else {
-      setNoResults(true);
+      setSearch(";kjh4g#&o4lh");
     }
   }, [location]);
 
@@ -212,7 +213,7 @@ function UpdateProducts() {
         Object.keys(uploadOptions).forEach((e) => {
           if (e !== "both") {
             uploadOptions[e].forEach((k) => {
-              if (!types.includes(el)) {
+              if (!types.includes(el.toLowerCase())) {
                 k.split(" ").forEach((j) => {
                   if (
                     pluralize
@@ -223,7 +224,7 @@ function UpdateProducts() {
                         ""
                       ) === pluralize.plural(el).toLowerCase()
                   ) {
-                    pluralize.plural(el).toLowerCase();
+                    types.push(k.toLowerCase());
                   }
                 });
               }
@@ -239,130 +240,43 @@ function UpdateProducts() {
       if (catagories.length < 1) {
         catagories = [";0.hjgbhj"];
       }
-
       setCatagory(catagories);
       setType(types);
+      setUpdate((prev) => prev + 1);
     }
   }, [search, uploadOptions]);
 
-  // setting color on page loads
-  useEffect(() => {
-    if (catagory.length > 0 && type.length > 0) {
-      axios
-        .get(`/product/total-items/${catagory}/${type}`)
-        .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
-          }
+  const reset = useCallback(() => {
+    setPage(0);
+    setHideFilter({
+      sort: true,
+      color: true,
+      size: true,
+    });
+    setFilter({
+      sort: "",
+      color: [],
+      size: [],
+    });
+    setLastClicked("");
+    setNoResults(false);
+    setUpdate((prev) => prev + 1);
+  }, []);
 
-          if (res.data.colors.length < 1) {
-            setNoResults(true);
-            setItemStock({ colors: [], sizes: [] });
-          } else {
-            setNoResults(false);
-            setItemStock(res.data);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  }, [catagory, type]);
+  useEffect(reset, [search]);
 
-  // getting items from server on page loads and when filter changes
-  useEffect(() => {
-    if (window.innerWidth > 1000) {
-      if (catagory.length > 0 && type.length > 0) {
-        axios
-          .get(
-            `/product/${catagory}/${type}/?page=${0 + 1}&limit=${limit}&sort=${
-              filter.sort
-            }&color=${filter.color}&size=${filter.size}`
-          )
-          .then((res) => {
-            if (res.status !== 200) {
-              throw new Error();
-            }
-            const { count, products } = res.data;
-            setItems([]);
-
-            if (count < 1) {
-              setNoResults(true);
-            }
-            setItemsCount(count);
-            setStockIndex((prev) => {
-              let obj = {};
-              for (let i = 0; i < products.length; i++) {
-                obj[i] = 0;
-              }
-              return obj;
-            });
-
-            setItems(products);
-            setPage(1);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-    }
-  }, [filter, catagory, showFilters, type]);
-
-  useEffect(() => {
-    if (window.innerWidth <= 1000 && page === 0) {
-      if (catagory.length > 0 && type.length > 0) {
-        axios
-          .get(
-            `/product/${catagory}/${type}/?page=${0 + 1}&limit=${limit}&sort=${
-              filter.sort
-            }&color=${filter.color}&size=${filter.size}`
-          )
-          .then((res) => {
-            if (res.status !== 200) {
-              throw new Error();
-            }
-            const { count, products } = res.data;
-            setItems([]);
-
-            if (count < 1) {
-              setNoResults(true);
-            }
-            setItemsCount(count);
-            setStockIndex((prev) => {
-              let obj = {};
-              for (let i = 0; i < products.length; i++) {
-                obj[i] = 0;
-              }
-              return obj;
-            });
-
-            setItems(products);
-            setPage(1);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-    }
-  }, [filter, catagory, showFilters, type, page]);
-
-  const getItems = () => {
+  const getItems = useCallback(() => {
+    setItems([]);
     axios
       .get(
-        `/product/${catagory}/${type}/?page=${1}&limit=${limit}&sort=${
+        `/product/${catagory}/${type}?page=${1}&limit=${limit}&sort=${
           filter.sort
         }&color=${filter.color}&size=${filter.size}`
       )
       .then((res) => {
-        if (res.status !== 200) {
-          throw new Error();
-        }
-
         const { count, products } = res.data;
+
         setItemsCount(count);
-
-        setItems([]);
-
         setStockIndex((prev) => {
           let obj = {};
           for (let i = 0; i < products.length; i++) {
@@ -377,13 +291,62 @@ function UpdateProducts() {
       .catch((err) => {
         console.log(err);
       });
-  };
+  }, [filter, catagory, type]);
+
+  const getFilters = useCallback(() => {
+    if (catagory.length > 0 && type.length > 0) {
+      if (catagory.includes(";0.hjgbhj") && type.includes(";0.hjgbhj")) {
+        setNoResults(true);
+        setItemStock({ colors: [], sizes: [] });
+      } else {
+        axios
+          .get(
+            `/product/filter/${catagory}/${type}?&color=${filter.color}&size=${filter.size}&filter=${lastClicked}`
+          )
+          .then((res) => {
+            if (Object.keys(res.data) < 1) {
+              setNoResults(true);
+              setItemStock({ colors: [], sizes: [] });
+            } else {
+              setFilter((prev) => {
+                Object.keys(res.data).forEach((el) => {
+                  if (el === "sizes") {
+                    prev.size = prev.size.filter((k) =>
+                      res.data[el].includes(k)
+                    );
+                  } else if (el === "colors") {
+                    prev.color = prev.color.filter((k) =>
+                      res.data[el].includes("#" + k)
+                    );
+                  }
+                });
+
+                return prev;
+              });
+              setItemStock((prev) => {
+                return {
+                  ...prev,
+                  ...res.data,
+                };
+              });
+              getItems();
+            }
+          })
+          .catch((err) => {
+            // history.push("/404");
+            console.log(err);
+          });
+      }
+    }
+  }, [filter, lastClicked, getItems, catagory, type]);
+
+  useEffect(getFilters, [update]);
 
   const pagination = () => {
     setPaginateLoading(true);
     axios
       .get(
-        `/product/${catagory}/${type}/?page=${page + 1}&limit=${limit}&sort=${
+        `/product/${catagory}/${type}?page=${page + 1}&limit=${limit}&sort=${
           filter.sort
         }&color=${filter.color}&size=${filter.size}`
       )
@@ -456,8 +419,9 @@ function UpdateProducts() {
           showFilters,
           setShowFilters,
           setBlackBox,
-          getItems,
           noResults,
+          setLastClicked,
+          setUpdate,
         }}
       />
       <div className="shop__items-container">
@@ -498,7 +462,7 @@ function UpdateProducts() {
               : {}
           }
         >
-          {search !== "" ? (
+          {search !== ";kjh4g#&o4lh" ? (
             <h1
               className={
                 noResults ? "shop__items-container__title__no-result" : ""

@@ -44,6 +44,7 @@ function Search() {
     color: true,
     size: true,
   });
+  const [lastClicked, setLastClicked] = useState("");
 
   const [showFilters, setShowFilters] = useState(false);
 
@@ -54,6 +55,8 @@ function Search() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const [PaginateLoading, setPaginateLoading] = useState(false);
+
+  const [update, setUpdate] = useState(0);
 
   useEffect(() => {
     if (search !== "") {
@@ -85,12 +88,24 @@ function Search() {
     const query = location.search.replace("?", "").split("&");
     if (query.length >= 1) {
       if (query.filter((el) => el.includes("q=")).length >= 1) {
-        setSearch(
+        if (
           decodeURI(
             query.filter((el) => el.includes("q="))[0].replace("q=", "")
-          )
-        );
+          ) !== ""
+        ) {
+          setSearch(
+            decodeURI(
+              query.filter((el) => el.includes("q="))[0].replace("q=", "")
+            )
+          );
+        } else {
+          setSearch(";kjh4g#&o4lh");
+        }
+      } else {
+        setSearch(";kjh4g#&o4lh");
       }
+    } else {
+      setSearch(";kjh4g#&o4lh");
     }
   }, [location]);
 
@@ -140,7 +155,7 @@ function Search() {
                         ""
                       ) === pluralize.plural(el).toLowerCase()
                   ) {
-                    types.push(pluralize.plural(el).toLowerCase());
+                    types.push(k.toLowerCase());
                   }
                 });
               }
@@ -156,310 +171,154 @@ function Search() {
       if (catagories.length < 1) {
         catagories = [";0.hjgbhj"];
       }
-
       setCatagory(catagories);
       setType(types);
+      setUpdate((prev) => prev + 1);
     }
   }, [search, uploadOptions]);
 
-  //set page to 0 when catagory changes
-  useEffect(() => {
-    setPage(0);
-  }, [search]);
+  //reset when search changes
 
-  // setting color on page loads
-  useEffect(() => {
+  const reset = useCallback(() => {
+    if (itemStock.colors.length > 0) {
+      setPage(0);
+      setHideFilter({
+        sort: true,
+        color: true,
+        size: true,
+      });
+      setFilter({
+        sort: "",
+        color: [],
+        size: [],
+      });
+      setLastClicked("");
+      setNoResults(false);
+      setUpdate((prev) => prev + 1);
+    }
+  }, [itemStock]);
+
+  useEffect(reset, [search]);
+
+  const getItems = useCallback(() => {
+    let str = `${catagory}/${type}`;
+    if (
+      (catagory.includes(";0.hjgbhj") && type.includes(";0.hjgbhj")) ||
+      noResults
+    ) {
+      setNoResults(true);
+      str = "best-seller";
+    }
+    setItems([]);
+    axios
+      .get(
+        `/product/${str}?page=${1}&limit=${limit}&sort=${filter.sort}&color=${
+          filter.color
+        }&size=${filter.size}`
+      )
+      .then((res) => {
+        const { count, products } = res.data;
+
+        setItemsCount(count);
+        setStockIndex((prev) => {
+          let obj = {};
+          for (let i = 0; i < products.length; i++) {
+            obj[i] = 0;
+          }
+          return obj;
+        });
+
+        setItems(products);
+        setPage(1);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [filter, catagory, type, noResults]);
+
+  const getFilters = useCallback(() => {
     if (catagory.length > 0 && type.length > 0) {
+      let str = `${catagory}/${type}`;
+      if (
+        (catagory.includes(";0.hjgbhj") && type.includes(";0.hjgbhj")) ||
+        noResults
+      ) {
+        setNoResults(true);
+        str = "best-seller";
+      }
       axios
-        .get(`/product/total-items/${catagory}/${type}`)
+        .get(
+          `/product/filter/${str}?&color=${filter.color}&size=${filter.size}&filter=${lastClicked}`
+        )
         .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
-          }
-
-          if (res.data.colors.length < 1) {
+          if (Object.keys(res.data) < 1) {
             setNoResults(true);
-            setItemStock({ colors: [], sizes: [] });
-            axios
-              .get(`product/best-seller/colors-sizes`)
-              .then((resp) => {
-                if (resp.status !== 200) {
-                  throw new Error();
-                }
-                setItemStock(resp.data);
-              })
-              .catch((err) => {
-                console.log(err);
-              });
+            setUpdate((prev) => prev + 1);
           } else {
-            setNoResults(false);
-            setItemStock(res.data);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  }, [catagory, type]);
-
-  // getting items from server on page loads and when filter changes
-  useEffect(() => {
-    if (window.innerWidth > 1000) {
-      if (catagory.length > 0 && type.length > 0) {
-        axios
-          .get(
-            `/product/${catagory}/${type}/?page=${0 + 1}&limit=${limit}&sort=${
-              filter.sort
-            }&color=${filter.color}&size=${filter.size}`
-          )
-          .then((res) => {
-            if (res.status !== 200) {
-              throw new Error();
-            }
-            const { count, products } = res.data;
-            setItems([]);
-
-            if (count < 1) {
-              axios
-                .get(
-                  `/product/best-seller/?page=${0 + 1}&limit=${limit}&sort=${
-                    filter.sort
-                  }&color=${filter.color}&size=${filter.size}`
-                )
-                .then((resp) => {
-                  if (resp.status !== 200) {
-                    throw new Error();
-                  }
-
-                  setItemsCount(resp.data.count);
-                  setStockIndex((prev) => {
-                    let obj = {};
-                    for (let i = 0; i < resp.data.products.length; i++) {
-                      obj[i] = 0;
-                    }
-                    return obj;
-                  });
-
-                  setItems(resp.data.products);
-                  setPage(1);
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
-            } else {
-              setItemsCount(count);
-              setStockIndex((prev) => {
-                let obj = {};
-                for (let i = 0; i < products.length; i++) {
-                  obj[i] = 0;
+            setFilter((prev) => {
+              Object.keys(res.data).forEach((el) => {
+                if (el === "sizes") {
+                  prev.size = prev.size.filter((k) => res.data[el].includes(k));
+                } else if (el === "colors") {
+                  prev.color = prev.color.filter((k) =>
+                    res.data[el].includes("#" + k)
+                  );
                 }
-                return obj;
               });
 
-              setItems(products);
-              setPage(1);
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-    }
-  }, [filter, catagory, showFilters, type]);
-
-  useEffect(() => {
-    if (window.innerWidth <= 1000 && page === 0) {
-      if (catagory.length > 0 && type.length > 0) {
-        axios
-          .get(
-            `/product/${catagory}/${type}/?page=${0 + 1}&limit=${limit}&sort=${
-              filter.sort
-            }&color=${filter.color}&size=${filter.size}`
-          )
-          .then((res) => {
-            if (res.status !== 200) {
-              throw new Error();
-            }
-            const { count, products } = res.data;
-            setItems([]);
-
-            if (count < 1) {
-              axios
-                .get(
-                  `/product/best-seller/?page=${0 + 1}&limit=${limit}&sort=${
-                    filter.sort
-                  }&color=${filter.color}&size=${filter.size}`
-                )
-                .then((resp) => {
-                  if (resp.status !== 200) {
-                    throw new Error();
-                  }
-
-                  setItemsCount(resp.data.count);
-                  setStockIndex((prev) => {
-                    let obj = {};
-                    for (let i = 0; i < resp.data.products.length; i++) {
-                      obj[i] = 0;
-                    }
-                    return obj;
-                  });
-
-                  setItems(resp.data.products);
-                  setPage(1);
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
-            } else {
-              setItemsCount(count);
-              setStockIndex((prev) => {
-                let obj = {};
-                for (let i = 0; i < products.length; i++) {
-                  obj[i] = 0;
-                }
-                return obj;
-              });
-
-              setItems(products);
-              setPage(1);
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }
-    }
-  }, [filter, catagory, showFilters, type, page]);
-
-  const getItems = () => {
-    if (!noResults) {
-      axios
-        .get(
-          `/product/${catagory}/${type}/?page=${1}&limit=${limit}&sort=${
-            filter.sort
-          }&color=${filter.color}&size=${filter.size}`
-        )
-        .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
+              return prev;
+            });
+            setItemStock((prev) => {
+              return {
+                ...prev,
+                ...res.data,
+              };
+            });
+            getItems();
           }
-
-          const { count, products } = res.data;
-          setItemsCount(count);
-
-          setItems([]);
-
-          setStockIndex((prev) => {
-            let obj = {};
-            for (let i = 0; i < products.length; i++) {
-              obj[i] = 0;
-            }
-            return obj;
-          });
-
-          setItems(products);
-          setPage(1);
         })
         .catch((err) => {
-          console.log(err);
-        });
-    } else {
-      axios
-        .get(
-          `/product/best-seller/?page=${0 + 1}&limit=${limit}&sort=${
-            filter.sort
-          }&color=${filter.color}&size=${filter.size}`
-        )
-        .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
-          }
-
-          const { count, products } = res.data;
-          setItemsCount(count);
-
-          setItems([]);
-
-          setStockIndex((prev) => {
-            let obj = {};
-            for (let i = 0; i < products.length; i++) {
-              obj[i] = 0;
-            }
-            return obj;
-          });
-
-          setItems(products);
-          setPage(1);
-        })
-        .catch((err) => {
+          // history.push("/404");
           console.log(err);
         });
     }
-  };
+  }, [filter, lastClicked, getItems, catagory, type, noResults]);
+
+  useEffect(getFilters, [update]);
 
   const pagination = () => {
     setPaginateLoading(true);
-    if (!noResults) {
-      axios
-        .get(
-          `/product/${catagory}/${type}/?page=${page + 1}&limit=${limit}&sort=${
-            filter.sort
-          }&color=${filter.color}&size=${filter.size}`
-        )
-        .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
+    axios
+      .get(
+        `/product/${noResults ? "best-seller" : `${catagory}/${type}`}/?page=${
+          page + 1
+        }&limit=${limit}&sort=${filter.sort}&color=${filter.color}&size=${
+          filter.size
+        }`
+      )
+      .then((res) => {
+        if (res.status !== 200) {
+          throw new Error();
+        }
+
+        const { count, products } = res.data;
+        setItemsCount(count);
+
+        setStockIndex((prev) => {
+          let obj = { ...prev };
+          for (let i = 0; i < products.length; i++) {
+            obj[i + page * limit] = 0;
           }
-
-          const { count, products } = res.data;
-          setItemsCount(count);
-
-          setStockIndex((prev) => {
-            let obj = { ...prev };
-            for (let i = 0; i < products.length; i++) {
-              obj[i + page * limit] = 0;
-            }
-            return obj;
-          });
-
-          setItems((prev) => prev.concat(products));
-          setPage((prev) => prev + 1);
-          setPaginateLoading(false);
-        })
-        .catch((err) => {
-          console.log(err);
+          return obj;
         });
-    } else {
-      axios
-        .get(
-          `/product/best-seller/?page=${page + 1}&limit=${limit}&sort=${
-            filter.sort
-          }&color=${filter.color}&size=${filter.size}`
-        )
-        .then((res) => {
-          if (res.status !== 200) {
-            throw new Error();
-          }
 
-          const { count, products } = res.data;
-          setItemsCount(count);
-
-          setStockIndex((prev) => {
-            let obj = { ...prev };
-            for (let i = 0; i < products.length; i++) {
-              obj[i + page * limit] = 0;
-            }
-            return obj;
-          });
-
-          setItems((prev) => prev.concat(products));
-          setPage((prev) => prev + 1);
-          setPaginateLoading(false);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
+        setItems((prev) => prev.concat(products));
+        setPage((prev) => prev + 1);
+        setPaginateLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const limitArr = () => {
@@ -482,7 +341,8 @@ function Search() {
           showFilters,
           setShowFilters,
           setBlackBox,
-          getItems,
+          setLastClicked,
+          setUpdate,
         }}
       />
       <div className="shop__items-container">
@@ -498,7 +358,7 @@ function Search() {
             <span>
               {noResults ? "We couldn't find anything for" : "Results For"}
             </span>{" "}
-            "{search}"
+            "{search === ";kjh4g#&o4lh" ? "" : search}"
           </h1>
           <p
             onClick={() => {

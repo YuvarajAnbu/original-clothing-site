@@ -1,6 +1,14 @@
 import React from "react";
 
-function Size({ filter, setFilter, hideFilter, setHideFilter, itemStock }) {
+function Size({
+  filter,
+  setFilter,
+  hideFilter,
+  setHideFilter,
+  itemStock,
+  setLastClicked,
+  setUpdate,
+}) {
   return (
     <div className="shop__filters-container__filter-container">
       <div
@@ -51,6 +59,8 @@ function Size({ filter, setFilter, hideFilter, setHideFilter, itemStock }) {
                     : [...prev.size, size],
                 };
               });
+              setLastClicked("size");
+              setUpdate((prev) => prev + 1);
             }}
           >
             <p>{size}</p>

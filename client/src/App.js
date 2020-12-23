@@ -43,7 +43,7 @@ import usStates from "./state/states";
 import ErrorBoundary from "./ErrorBoundary";
 const Header = lazy(() => import("./components/header/Header"));
 const Home = lazy(() => import("./components/home/Home"));
-const Shop = lazy(() => import("./components/shop/Shop"));
+const Items = lazy(() => import("./components/items/Items"));
 const Item = lazy(() => import("./components/item/Item"));
 const Billing = lazy(() => import("./components/billing/Billing"));
 const SignUp = lazy(() => import("./components/signupAndSignin/SignUp"));
@@ -175,7 +175,7 @@ function App() {
                           <SignIn />
                         </Route>
                         <Route path="/items/:catagory/:type" exact>
-                          <Shop />
+                          <Items />
                         </Route>
                         <Route path="/item/:id" exact>
                           <Item />

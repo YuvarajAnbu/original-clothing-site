@@ -12,8 +12,9 @@ function Filter({
   showFilters,
   setShowFilters,
   setBlackBox,
-  getItems,
   noResults,
+  setLastClicked,
+  setUpdate,
 }) {
   useEffect(() => {
     if (showFilters) {
@@ -81,15 +82,43 @@ function Filter({
         </button>
       </div>
       <h4>filter by :</h4>
-      <SortBy {...{ filter, setFilter, hideFilter, setHideFilter }} />
-      <Color {...{ filter, setFilter, hideFilter, setHideFilter, itemStock }} />
-      <Size {...{ filter, setFilter, hideFilter, setHideFilter, itemStock }} />
+      <SortBy
+        {...{
+          filter,
+          setFilter,
+          hideFilter,
+          setHideFilter,
+          setLastClicked,
+          setUpdate,
+        }}
+      />
+      <Color
+        {...{
+          filter,
+          setFilter,
+          hideFilter,
+          setHideFilter,
+          itemStock,
+          setLastClicked,
+          setUpdate,
+        }}
+      />
+      <Size
+        {...{
+          filter,
+          setFilter,
+          hideFilter,
+          setHideFilter,
+          itemStock,
+          setLastClicked,
+          setUpdate,
+        }}
+      />
       <button
         className="shop__filters-container__apply"
         onClick={() => {
           setShowFilters(false);
           setBlackBox(false);
-          getItems();
         }}
       >
         apply

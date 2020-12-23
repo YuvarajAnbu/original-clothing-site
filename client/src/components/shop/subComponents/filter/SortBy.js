@@ -1,7 +1,14 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-function SortBy({ filter, setFilter, hideFilter, setHideFilter }) {
+function SortBy({
+  filter,
+  setFilter,
+  hideFilter,
+  setHideFilter,
+  setLastClicked,
+  setUpdate,
+}) {
   return (
     <div className="shop__filters-container__filter-container">
       <div
@@ -45,6 +52,8 @@ function SortBy({ filter, setFilter, hideFilter, setHideFilter }) {
                   sort: prev.sort === "asc" ? "" : "asc",
                 };
               });
+              setLastClicked("sort");
+              setUpdate((prev) => prev + 1);
             }}
           >
             {filter.sort === "asc" ? (
@@ -72,6 +81,8 @@ function SortBy({ filter, setFilter, hideFilter, setHideFilter }) {
                   sort: prev.sort === "desc" ? "" : "desc",
                 };
               });
+              setLastClicked("sort");
+              setUpdate((prev) => prev + 1);
             }}
           >
             {filter.sort === "desc" ? (

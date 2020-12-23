@@ -162,33 +162,70 @@ router.get("/best-seller", async (req, res) => {
   }
 });
 
-router.get("/best-seller/colors-sizes", async (req, res) => {
+router.get("/filter/best-seller", async (req, res) => {
   try {
+    const query = req.query;
+    let obj = {};
+
+    Object.keys(query).forEach((el) => {
+      if (query[el] !== "") {
+        if (el === "color" && query.filter.includes("color")) {
+          const color = query[el].split(",");
+          obj.stock = { $elemMatch: { color: { $in: [] } } };
+
+          color.forEach((e) => {
+            obj.stock.$elemMatch.color.$in.push("#" + e);
+          });
+        } else if (el === "size" && query.filter.includes("size")) {
+          let size = query[el].split(",");
+          if (typeof obj.stock === "undefined") {
+            obj.stock = { $elemMatch: {} };
+          }
+          obj.stock.$elemMatch["sizeRemaining.size"] = { $in: size };
+        }
+      }
+    });
+
+    let filter = {
+      colors: [],
+      sizes: [],
+    };
+
     const productsStock = await Product.find(
-      {
-        sales: { $gte: 1 },
-      },
+      { sales: { $gte: 1 }, ...obj },
       "stock"
     );
 
-    let colors = [];
-    let sizes = [];
-
     productsStock.forEach(({ stock }) => {
       stock.forEach((item) => {
-        if (!colors.includes(item.color)) {
-          colors.push(item.color);
-        }
-
-        item.sizeRemaining.forEach(({ size }) => {
-          if (!sizes.includes(size)) {
-            sizes.push(size);
+        if (
+          !query.filter.includes("color") ||
+          (query.size === "" && query.filter.includes("size"))
+        ) {
+          if (!filter.colors.includes(item.color)) {
+            filter.colors.push(item.color);
           }
-        });
+        }
+        if (
+          !query.filter.includes("size") ||
+          (query.color === "" && query.filter.includes("color"))
+        ) {
+          item.sizeRemaining.forEach(({ size }) => {
+            if (!filter.sizes.includes(size)) {
+              filter.sizes.push(size);
+            }
+          });
+        }
       });
     });
 
-    res.send({ colors, sizes });
+    Object.keys(filter).forEach((el) => {
+      if (filter[el].length < 1) {
+        delete filter[el];
+      }
+    });
+
+    res.send(filter);
   } catch (err) {
     res.sendStatus(400);
   }
@@ -315,8 +352,35 @@ router.get("/trending", async (req, res) => {
   }
 });
 
-router.get("/trending/colors-sizes", async (req, res) => {
+router.get("/filter/trending", async (req, res) => {
   try {
+    const query = req.query;
+    let obj = {};
+
+    Object.keys(query).forEach((el) => {
+      if (query[el] !== "") {
+        if (el === "color" && query.filter.includes("color")) {
+          const color = query[el].split(",");
+          obj.stock = { $elemMatch: { color: { $in: [] } } };
+
+          color.forEach((e) => {
+            obj.stock.$elemMatch.color.$in.push("#" + e);
+          });
+        } else if (el === "size" && query.filter.includes("size")) {
+          let size = query[el].split(",");
+          if (typeof obj.stock === "undefined") {
+            obj.stock = { $elemMatch: {} };
+          }
+          obj.stock.$elemMatch["sizeRemaining.size"] = { $in: size };
+        }
+      }
+    });
+
+    let filter = {
+      colors: [],
+      sizes: [],
+    };
+
     const date = new Date();
 
     const month = Number(`${date.getFullYear()}${date.getMonth() + 1}`);
@@ -325,6 +389,7 @@ router.get("/trending/colors-sizes", async (req, res) => {
       {
         $match: {
           salesPerMonth: { $elemMatch: { month: month, sales: { $gte: 1 } } },
+          ...obj,
         },
       },
       {
@@ -334,24 +399,36 @@ router.get("/trending/colors-sizes", async (req, res) => {
       },
     ]);
 
-    let colors = [];
-    let sizes = [];
-
     productsStock.forEach(({ stock }) => {
       stock.forEach((item) => {
-        if (!colors.includes(item.color)) {
-          colors.push(item.color);
-        }
-
-        item.sizeRemaining.forEach(({ size }) => {
-          if (!sizes.includes(size)) {
-            sizes.push(size);
+        if (
+          !query.filter.includes("color") ||
+          (query.size === "" && query.filter.includes("size"))
+        ) {
+          if (!filter.colors.includes(item.color)) {
+            filter.colors.push(item.color);
           }
-        });
+        }
+        if (
+          !query.filter.includes("size") ||
+          (query.color === "" && query.filter.includes("color"))
+        ) {
+          item.sizeRemaining.forEach(({ size }) => {
+            if (!filter.sizes.includes(size)) {
+              filter.sizes.push(size);
+            }
+          });
+        }
       });
     });
 
-    res.send({ colors, sizes });
+    Object.keys(filter).forEach((el) => {
+      if (filter[el].length < 1) {
+        delete filter[el];
+      }
+    });
+
+    res.send(filter);
   } catch (err) {
     console.log(err);
     res.sendStatus(400);
@@ -487,15 +564,13 @@ router.put("/review/delete/:productId", auth, async (req, res) => {
   }
 });
 
-router.get("/total-items/:catagory/:type", async (req, res) => {
+router.get("/filter/:catagory/:type", async (req, res) => {
   try {
     const { catagory, type } = req.params;
+    const query = req.query;
 
     const catagoryArr = catagory.split(",");
     const typeArr = type.split(",");
-
-    let colors = [];
-    let sizes = [];
 
     const filterObj = {};
 
@@ -505,29 +580,64 @@ router.get("/total-items/:catagory/:type", async (req, res) => {
     if (typeArr[0] !== ";0.hjgbhj") {
       filterObj.type = [...typeArr];
     }
+    let obj = {};
 
-    if (Object.keys(filterObj).length < 1) {
-      res.send({ colors, sizes });
-      return;
-    }
+    Object.keys(query).forEach((el) => {
+      if (query[el] !== "") {
+        if (el === "color" && query.filter.includes("color")) {
+          const color = query[el].split(",");
+          obj.stock = { $elemMatch: { color: { $in: [] } } };
 
-    const productsStock = await Product.find({ ...filterObj }, "stock");
+          color.forEach((e) => {
+            obj.stock.$elemMatch.color.$in.push("#" + e);
+          });
+        } else if (el === "size" && query.filter.includes("size")) {
+          let size = query[el].split(",");
+          if (typeof obj.stock === "undefined") {
+            obj.stock = { $elemMatch: {} };
+          }
+          obj.stock.$elemMatch["sizeRemaining.size"] = { $in: size };
+        }
+      }
+    });
+
+    let filter = {
+      colors: [],
+      sizes: [],
+    };
+
+    const productsStock = await Product.find({ ...filterObj, ...obj }, "stock");
 
     productsStock.forEach(({ stock }) => {
       stock.forEach((item) => {
-        if (!colors.includes(item.color)) {
-          colors.push(item.color);
-        }
-
-        item.sizeRemaining.forEach(({ size }) => {
-          if (!sizes.includes(size)) {
-            sizes.push(size);
+        if (
+          !query.filter.includes("color") ||
+          (query.size === "" && query.filter.includes("size"))
+        ) {
+          if (!filter.colors.includes(item.color)) {
+            filter.colors.push(item.color);
           }
-        });
+        }
+        if (
+          !query.filter.includes("size") ||
+          (query.color === "" && query.filter.includes("color"))
+        ) {
+          item.sizeRemaining.forEach(({ size }) => {
+            if (!filter.sizes.includes(size)) {
+              filter.sizes.push(size);
+            }
+          });
+        }
       });
     });
 
-    res.send({ colors, sizes });
+    Object.keys(filter).forEach((el) => {
+      if (filter[el].length < 1) {
+        delete filter[el];
+      }
+    });
+
+    res.send(filter);
   } catch (err) {
     console.log(err);
     res.sendStatus(400);

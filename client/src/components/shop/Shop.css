@@ -199,6 +199,8 @@
       -ms-flex-align: center;
           align-items: center;
   padding: 5px;
+  min-width: 130px;
+  max-width: 140px;
   cursor: pointer;
   -webkit-box-flex: 50%;
       -ms-flex: 50%;
