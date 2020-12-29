@@ -1,11 +1,23 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom";
-import App from "./App";
+import ErrorBoundary from "./ErrorBoundary";
 import * as serviceWorker from "./serviceWorker";
+import "./index.css";
+const App = lazy(() => import("./App"));
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="loader-container">
+            <div className="loader"></div>
+          </div>
+        }
+      >
+        <App />{" "}
+      </Suspense>
+    </ErrorBoundary>
   </React.StrictMode>,
   document.getElementById("root")
 );

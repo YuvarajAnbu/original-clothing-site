@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
 import SortBy from "./SortBy";
 import Color from "./Color";
 import Size from "./Size";
+import { ColorsContext } from "../../../../App";
 
 function Filter({
   filter,
@@ -16,6 +17,8 @@ function Filter({
   setLastClicked,
   setUpdate,
 }) {
+  const colors = useContext(ColorsContext);
+
   useEffect(() => {
     if (showFilters) {
       document.querySelector("body").style.paddingRight =
@@ -101,6 +104,7 @@ function Filter({
           itemStock,
           setLastClicked,
           setUpdate,
+          colors,
         }}
       />
       <Size

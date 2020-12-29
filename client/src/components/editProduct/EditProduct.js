@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
 import { useParams, useHistory } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import axios from "axios";
 import "../upload/UploadItem.css";
-import { ProductsContext, UserContext } from "../../App";
+import { ProductsContext, UserContext, ColorsContext } from "../../App";
 import StockBox from "./StockBox";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -13,8 +13,10 @@ function EditProduct() {
 
   const { uploadOptions } = useContext(ProductsContext);
   const { user } = useContext(UserContext);
+  const colors = useContext(ColorsContext);
 
   const [catagory, setCatagory] = useState("women");
+  const [type, setType] = useState("dresses");
   const [images, setImages] = useState({});
 
   const [loading, setLoading] = useState(false);
@@ -98,6 +100,8 @@ function EditProduct() {
           throw new Error();
         }
         setItem(res.data);
+        setCatagory(res.data.catagory);
+        setType(res.data.type);
         setTimeout(() => {
           document
             .querySelector('.upload__form__input-container input[name="name"]')
@@ -109,7 +113,34 @@ function EditProduct() {
       });
   }, [id]);
 
-  const { register, handleSubmit, errors, control, getValues } = useForm();
+  const {
+    register,
+    handleSubmit,
+    errors,
+    control,
+    getValues,
+    setValue,
+  } = useForm();
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "stock",
+  });
+
+  useEffect(() => {
+    if (typeof item._id !== "undefined") {
+      if (fields.length < 1) {
+        item.stock.forEach((el) => {
+          setTimeout(() => {
+            setImages((prev) => {
+              return { ...prev, [el._id]: el.images };
+            });
+            append({ color: el.color, _id: el._id });
+          }, 1);
+        });
+      }
+    }
+  }, [item, append, setImages, fields.length]);
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -221,7 +252,7 @@ function EditProduct() {
                 name="catagory"
                 onChange={(e) => setCatagory(e.target.value)}
                 ref={register}
-                defaultValue={item.catagory}
+                value={catagory}
               >
                 <option value="women">women</option>
                 <option value="men">men</option>
@@ -235,7 +266,12 @@ function EditProduct() {
               type <span>*</span>
             </label>
             <div className="upload__form__input-container__select-container">
-              <select name="type" ref={register} defaultValue={item.type}>
+              <select
+                name="type"
+                ref={register}
+                onChange={(e) => setType(e.target.value)}
+                value={type}
+              >
                 {uploadOptions[catagory].map((el, l) => (
                   <option key={l} value={el.toLowerCase()}>
                     {el}
@@ -250,17 +286,28 @@ function EditProduct() {
           <label htmlFor="stock">
             stock <span>*</span>
           </label>
-          <StockBox
-            {...{
-              control,
-              register,
-              errors,
-              images,
-              setImages,
-              getValues,
-              item,
-            }}
-          />
+          <div className="upload__form__stocks-box__stocks-container">
+            {fields.map((field, index) => (
+              <StockBox
+                key={field.id}
+                {...{
+                  control,
+                  register,
+                  errors,
+                  images,
+                  setImages,
+                  getValues,
+                  item,
+                  colors,
+                  setValue,
+                  field,
+                  index,
+                  append,
+                  remove,
+                }}
+              />
+            ))}
+          </div>
         </div>
         <button
           className={

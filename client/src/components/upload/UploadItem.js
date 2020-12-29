@@ -1,9 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 import "./UploadItem.css";
-import { ProductsContext, UserContext } from "../../App";
+import { ProductsContext, UserContext, ColorsContext } from "../../App";
 import StockBox from "./StockBox";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -12,6 +12,7 @@ function UploadItem() {
 
   const { uploadOptions } = useContext(ProductsContext);
   const { user } = useContext(UserContext);
+  const colors = useContext(ColorsContext);
 
   const [catagory, setCatagory] = useState("women");
   const [type, setType] = useState(uploadOptions.women[0]);
@@ -110,6 +111,11 @@ function UploadItem() {
         },
       ],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "stock",
   });
 
   const onSubmit = async (data) => {
@@ -258,16 +264,27 @@ function UploadItem() {
           <label htmlFor="stock">
             stock <span>*</span>
           </label>
-          <StockBox
-            {...{
-              control,
-              register,
-              errors,
-              images,
-              setImages,
-              getValues,
-            }}
-          />
+          <div className="upload__form__stocks-box__stocks-container">
+            {fields.map((field, index) => (
+              <StockBox
+                key={index}
+                {...{
+                  control,
+                  register,
+                  errors,
+                  images,
+                  setImages,
+                  setValue,
+                  getValues,
+                  colors,
+                  index,
+                  field,
+                  append,
+                  remove,
+                }}
+              />
+            ))}
+          </div>
         </div>
         <button
           className={

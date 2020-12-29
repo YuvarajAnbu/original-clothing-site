@@ -97,7 +97,7 @@ function NavLinks({ setBlackBox }) {
                                   setBlackBox(false);
                                   setCatagory("");
                                 }}
-                                to={`/items/${d.for}/${g}`}
+                                to={`/items/${d.for.toLowerCase()}/${g.toLowerCase()}`}
                               >
                                 {g}
                               </Link>

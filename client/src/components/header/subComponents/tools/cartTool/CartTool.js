@@ -6,7 +6,7 @@ import React, {
   lazy,
   Suspense,
 } from "react";
-import { CartContext } from "../../../../../App";
+import { CartContext, ColorsContext } from "../../../../../App";
 import { Link } from "react-router-dom";
 const CartItem = lazy(() => import("./CartItem"));
 
@@ -14,6 +14,7 @@ function CartTool({ setBlackBox, windowWidth, clicked, setClicked }) {
   const [ifHide, setIfHide] = useState(true);
 
   const { cart, setCart } = useContext(CartContext);
+  const colors = useContext(ColorsContext);
 
   useEffect(() => {
     if (clicked !== "cart") {
@@ -177,7 +178,7 @@ function CartTool({ setBlackBox, windowWidth, clicked, setClicked }) {
                     item={item}
                     key={index}
                     setCart={setCart}
-                    {...{ setBlackBox, setIfHide }}
+                    {...{ setBlackBox, setIfHide, colors }}
                   />
                 ))}
               </div>

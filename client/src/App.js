@@ -40,6 +40,7 @@ import {
 import axios from "axios";
 import products from "./state/products";
 import usStates from "./state/states";
+import colors from "./state/colors";
 import ErrorBoundary from "./ErrorBoundary";
 const Header = lazy(() => import("./components/header/Header"));
 const Home = lazy(() => import("./components/home/Home"));
@@ -78,6 +79,7 @@ export const ProductsContext = createContext();
 export const UserContext = createContext();
 export const CartContext = createContext();
 export const StateContext = createContext();
+export const ColorsContext = createContext();
 export const PathContext = createContext();
 
 function App() {
@@ -135,14 +137,6 @@ function App() {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  useEffect(() => {
-    const script = document.createElement("script");
-
-    script.src = "https://chir.ag/projects/ntc/ntc.js";
-
-    document.body.appendChild(script);
-  }, []);
-
   return (
     <Router>
       <ErrorBoundary>
@@ -162,84 +156,86 @@ function App() {
               <UserContext.Provider value={{ user, setUser }}>
                 <CartContext.Provider value={{ cart, setCart }}>
                   <PathContext.Provider value={{ path, setPath }}>
-                    <StateContext.Provider value={usStates}>
-                      <Header />
-                      <Switch>
-                        <Route path="/" exact>
-                          <Home />
-                        </Route>
-                        <Route path="/signup" exact>
-                          <SignUp />
-                        </Route>
-                        <Route path="/signin" exact>
-                          <SignIn />
-                        </Route>
-                        <Route path="/items/:catagory/:type" exact>
-                          <Items />
-                        </Route>
-                        <Route path="/item/:id" exact>
-                          <Item />
-                        </Route>
-                        <Route path="/checkout" exact>
-                          <Checkout />
-                        </Route>
-                        <Route path="/your-orders" exact>
-                          <YourOrders />
-                        </Route>
-                        <Route path="/orders" exact>
-                          <YourOrders />
-                        </Route>
-                        <Route path="/search" exact>
-                          <Search />
-                        </Route>
+                    <ColorsContext.Provider value={colors}>
+                      <StateContext.Provider value={usStates}>
+                        <Header />
+                        <Switch>
+                          <Route path="/" exact>
+                            <Home />
+                          </Route>
+                          <Route path="/signup" exact>
+                            <SignUp />
+                          </Route>
+                          <Route path="/signin" exact>
+                            <SignIn />
+                          </Route>
+                          <Route path="/items/:catagory/:type" exact>
+                            <Items />
+                          </Route>
+                          <Route path="/item/:id" exact>
+                            <Item />
+                          </Route>
+                          <Route path="/checkout" exact>
+                            <Checkout />
+                          </Route>
+                          <Route path="/your-orders" exact>
+                            <YourOrders />
+                          </Route>
+                          <Route path="/orders" exact>
+                            <YourOrders />
+                          </Route>
+                          <Route path="/search" exact>
+                            <Search />
+                          </Route>
 
-                        {user.type === "admin" && (
-                          <Route path="/upload" exact>
-                            <UploadItem />
+                          {user.type === "admin" && (
+                            <Route path="/upload" exact>
+                              <UploadItem />
+                            </Route>
+                          )}
+                          {user.type === "admin" && (
+                            <Route path="/update-products" exact>
+                              <UpdateProducts />
+                            </Route>
+                          )}
+                          {user.type === "admin" && (
+                            <Route path="/edit-item/:id" exact>
+                              <EditProduct />
+                            </Route>
+                          )}
+                          {user.type === "admin" && (
+                            <Route path="/update-order" exact>
+                              <UpdateOrder />
+                            </Route>
+                          )}
+                          <Route path="/terms-and-conditions" exact>
+                            <TermsAndConditions />
                           </Route>
-                        )}
-                        {user.type === "admin" && (
-                          <Route path="/update-products" exact>
-                            <UpdateProducts />
+                          <Route path="/private-policy" exact>
+                            <PrivatePolicy />
                           </Route>
-                        )}
-                        {user.type === "admin" && (
-                          <Route path="/edit-item/:id" exact>
-                            <EditProduct />
+                          <Route path="/accessibility" exact>
+                            <Accessibility />
                           </Route>
-                        )}
-                        {user.type === "admin" && (
-                          <Route path="/update-order" exact>
-                            <UpdateOrder />
+                          <Route path="/personal-info" exact>
+                            <PersonalInfo />
                           </Route>
-                        )}
-                        <Route path="/terms-and-conditions" exact>
-                          <TermsAndConditions />
-                        </Route>
-                        <Route path="/private-policy" exact>
-                          <PrivatePolicy />
-                        </Route>
-                        <Route path="/accessibility" exact>
-                          <Accessibility />
-                        </Route>
-                        <Route path="/personal-info" exact>
-                          <PersonalInfo />
-                        </Route>
-                        <Route path="/shipping-and-billing" exact>
-                          <Billing />
-                        </Route>
-                        <Route path="/trending" exact>
-                          <Trending />
-                        </Route>
-                        <Route path="/best-sellers" exact>
-                          <BestSeller />
-                        </Route>
-                        <Route>
-                          <WrongPage />
-                        </Route>
-                      </Switch>
-                      <Footer />
-                    </StateContext.Provider>
+                          <Route path="/shipping-and-billing" exact>
+                            <Billing />
+                          </Route>
+                          <Route path="/trending" exact>
+                            <Trending />
+                          </Route>
+                          <Route path="/best-sellers" exact>
+                            <BestSeller />
+                          </Route>
+                          <Route>
+                            <WrongPage />
+                          </Route>
+                        </Switch>
+                        <Footer />
+                      </StateContext.Provider>
+                    </ColorsContext.Provider>
                   </PathContext.Provider>
                 </CartContext.Provider>
               </UserContext.Provider>

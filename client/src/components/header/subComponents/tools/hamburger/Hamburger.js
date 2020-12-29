@@ -201,7 +201,7 @@ function Hamburger({ setBlackBox, clicked, setClicked, windowWidth }) {
                             return (
                               <li key={k}>
                                 <Link
-                                  to={`/items/${d.for}/${g}`}
+                                  to={`/items/${d.for.toLowerCase()}/${g.toLowerCase()}`}
                                   onClick={() => {
                                     setIfHide(true);
                                     setBlackBox(false);

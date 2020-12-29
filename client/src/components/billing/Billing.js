@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import "./Billing.css";
-import { CartContext, UserContext } from "../../App";
+import { CartContext, UserContext, ColorsContext } from "../../App";
 import { Link } from "react-router-dom";
 import User from "./subComponents/User";
 import Address from "./subComponents/Address";
@@ -9,6 +9,7 @@ import Card from "./subComponents/Card";
 function Billing() {
   const { cart, setCart } = useContext(CartContext);
   const { user } = useContext(UserContext);
+  const colors = useContext(ColorsContext);
 
   const [billingDetails, setBillingDetails] = useState({
     user: {},
@@ -77,18 +78,22 @@ function Billing() {
           purchase.
         </p>
         <Link to="/">
-          <button onClick={() => {
-            setCart([])
-          }}>
-    ok
-    </button>
+          <button
+            onClick={() => {
+              setCart([]);
+            }}
+          >
+            ok
+          </button>
         </Link>
       </div>
       <Link to="/">
-        <div className="billing__tool-tip-container__black-box" 
-             onClick={() => {
-              setCart([])
-            }}></div>
+        <div
+          className="billing__tool-tip-container__black-box"
+          onClick={() => {
+            setCart([]);
+          }}
+        ></div>
       </Link>
     </div>
   ) : (
@@ -239,11 +244,7 @@ function Billing() {
                     </p>
                   </Link>
                   <p>{`$ ${((el.price * el.quantity) / 100).toFixed(2)}`}</p>
-                  <p>
-                    color:{" "}
-                    {typeof window.ntc !== "undefined" &&
-                      window.ntc.name(el.color)[1]}
-                  </p>
+                  <p>color: {colors.filter((e) => e[1] === el.color)[0][0]}</p>
                   <p>size: {el.size}</p>
                   <p>{`Qty: ${el.quantity}`}</p>
                 </div>

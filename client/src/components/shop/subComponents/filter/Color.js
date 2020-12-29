@@ -8,6 +8,7 @@ function Color({
   itemStock,
   setLastClicked,
   setUpdate,
+  colors,
 }) {
   return (
     <div className="shop__filters-container__filter-container">
@@ -75,9 +76,7 @@ function Color({
                 style={{ backgroundColor: color }}
               ></div>
             </div>
-            <p>
-              {typeof window.ntc !== "undefined" && window.ntc.name(color)[1]}
-            </p>
+            <p>{colors.filter((el) => el[1] === color)[0][0]}</p>
           </div>
         ))}
       </div>

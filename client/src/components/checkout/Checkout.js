@@ -1,13 +1,14 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { CartContext, UserContext } from "../../App";
+import { CartContext, UserContext, ColorsContext } from "../../App";
 import "./Checkout.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function Checkout() {
   const { cart, setCart } = useContext(CartContext);
   const { user } = useContext(UserContext);
+  const colors = useContext(ColorsContext);
 
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
@@ -179,17 +180,22 @@ function Checkout() {
                 : `purchase successful. Your orderId is ${orderId}`}
             </p>
             <Link to={typeof user.name !== "undefined" ? "/your-orders" : "/"}>
-              <button 
-              onClick={() => {
-              setCart([])
-             }}>ok</button>
+              <button
+                onClick={() => {
+                  setCart([]);
+                }}
+              >
+                ok
+              </button>
             </Link>
           </div>
           <Link to={typeof user.name !== "undefined" ? "/your-orders" : "/"}>
-            <div className="checkout__tool-tip-container__black-box"
-                 onClick={() => {
-              setCart([])
-             }}></div>
+            <div
+              className="checkout__tool-tip-container__black-box"
+              onClick={() => {
+                setCart([]);
+              }}
+            ></div>
           </Link>
         </div>
       )}
@@ -238,11 +244,7 @@ function Checkout() {
                 </div>
                 <div className="checkout__items-container__items__item__content__desc">
                   <Link to={`/item/${el._id}`}>{el.name}</Link>
-                  <p>
-                    color:{" "}
-                    {typeof window.ntc !== "undefined" &&
-                      window.ntc.name(el.color)[1]}
-                  </p>
+                  <p>color: {colors.filter((e) => e[1] === el.color)[0][0]}</p>
                   <p>size: {el.size}</p>
                   <div className="checkout__items-container__items__item__content__desc__select-container">
                     <label>QTY:</label>

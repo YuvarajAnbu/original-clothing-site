@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-function CartItem({ item, setCart, setIfHide, setBlackBox }) {
+function CartItem({ item, setCart, setIfHide, setBlackBox, colors }) {
   return (
     <div className="nav-bar__tools__cart__items-container__items__item">
       <div className="nav-bar__tools__cart__items-container__items__item__img">
@@ -42,10 +42,7 @@ function CartItem({ item, setCart, setIfHide, setBlackBox }) {
           {`$${((item.price * item.quantity) / 100).toFixed(2)}`}
         </p>
         <p>Size: {item.size}</p>
-        <p>
-          Color:{" "}
-          {typeof window.ntc !== "undefined" && window.ntc.name(item.color)[1]}
-        </p>
+        <p>Color: {colors.filter((el) => el[1] === item.color)[0][0]}</p>
         <p>QTY: {item.quantity}</p>
       </div>
       <div className="nav-bar__tools__cart__items-container__items__item__buttons">

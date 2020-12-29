@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-function Order({ el, setOrders, setSuccessMsgs, setErrorMsgs }) {
+function Order({ el, setOrders, setSuccessMsgs, setErrorMsgs, colors }) {
   const [showAddress, setShowAddress] = useState(false);
 
   const [loadingButton, setLoadingButton] = useState(false);
@@ -185,11 +185,7 @@ function Order({ el, setOrders, setSuccessMsgs, setErrorMsgs }) {
                 <p className="your-orders__orders-container__order__products-container__product-container__product__content__price">
                   $ {(e.price / 100).toFixed(2)}
                 </p>
-                <p>
-                  Color:{" "}
-                  {typeof window.ntc !== "undefined" &&
-                    window.ntc.name(e.color)[1]}
-                </p>
+                <p>Color: {colors.filter((z) => z[1] === e.color)[0][0]}</p>
                 <p>size: {e.size}</p>
                 <p>quantity: {e.quantity}</p>
               </div>

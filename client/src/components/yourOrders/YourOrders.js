@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Link, useLocation, useHistory } from "react-router-dom";
 import axios from "axios";
-import { UserContext } from "../../App";
+import { UserContext, ColorsContext } from "../../App";
 import "./YourOrders.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Order from "./subComponents/Order";
@@ -10,6 +10,7 @@ function YourOrders() {
   const location = useLocation();
   const history = useHistory();
   const { user } = useContext(UserContext);
+  const colors = useContext(ColorsContext);
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoding] = useState(true);
@@ -188,7 +189,7 @@ function YourOrders() {
           {orders.map((el, index) => (
             <Order
               key={index}
-              {...{ el, setOrders, setSuccessMsgs, setErrorMsgs }}
+              {...{ el, setOrders, setSuccessMsgs, setErrorMsgs, colors }}
             />
           ))}
         </div>
